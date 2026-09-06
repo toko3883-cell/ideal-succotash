@@ -57,34 +57,63 @@ body{background:#f0f0f4;padding:10px;font-size:15px;}
 .main-wrap{
     max-width:none;margin:0 auto;
     display:grid;
-    grid-template-columns:1fr 6px 1fr;          /* 左右固定 1:1 */
-    grid-template-rows:45vh 6px calc(55vh - 6px); /* 上下固定 45:55 */
+    grid-template-columns:var(--col-left,1fr) 6px var(--col-right,1fr);
+    grid-template-rows:var(--row-top,1fr) 6px var(--row-bottom,1fr);
     grid-template-areas:
         "top    top     top"
         "hsplit hsplit  hsplit"
         "left   vsplit  right";
     gap:0;
-    height:calc(100vh - 20px);   /* 三個版面填滿視窗，拖動分隔條即放大縮小 */
+    height:calc(100vh - 20px);   /* 桌面：三個版面填滿視窗，拖動分隔條即放大縮小 */
+}
+
+/* ===== 三斷點響應式：桌面 / 平板 / 手機，三個版面都固定可見可用 ===== */
+
+/* —— 平板 (721px ~ 1080px)：保留田字格，但 label 同控件收細，避免擠壓 —— */
+@media(max-width:1080px){
+    .main-wrap{
+        grid-template-columns:minmax(0,1fr) 6px minmax(0,1fr);
+        height:calc(100vh - 20px);
+    }
+    .row,.row-address,.row-multi,.query-row{grid-template-columns:140px minmax(0,1fr);gap:8px;}
+    label{width:140px;font-size:14px;}
+    input[type="text"],input[type="number"],input:not([type]),select,textarea{height:36px;}
+    textarea{min-height:36px;}
+    .btn-std{min-width:120px;}
+}
+
+/* —— 手機 / 細平板直屏 (≤720px)：三個版面垂直堆疊，各自獨立高度 + 可滾動 —— */
+@media(max-width:720px){
+    .main-wrap{
+        grid-template-columns:1fr;
+        grid-template-areas:"top" "left" "right";
+        height:auto;                    /* 唔鎖死 100vh，三格自然流到下層 */
+        min-height:calc(100vh - 20px);
+    }
+    .hsplit,.vsplit{display:none;}      /* 窄屏隱藏分隔條（唔支援拖動）*/
+    .card-top   {height:46vh; min-height:240px;}
+    .card-left  {height:46vh; min-height:240px;}
+    .card-right {height:46vh; min-height:240px;}
+    /* label 轉上、控件轉落，單列垂直排，手指易撳 */
+    .row,.row-address,.row-multi,.query-row{grid-template-columns:1fr;gap:4px 0;}
+    label{width:auto;text-align:left;padding-right:0;font-size:14px;}
+    .address-row{grid-template-columns:1fr;}
+    input[type="text"],input[type="number"],input:not([type]),select{width:100%;max-width:none;}
+    textarea{width:100%;max-width:none;}
+    .btn-std{min-width:auto;flex:1 1 auto;}
+    .scroll-btn{width:44px;height:44px;font-size:18px;}  /* 符合手指點擊目標 */
 }
 .card-top{grid-area:top;}
 .card-left{grid-area:left;min-width:0;}
 .card-right{grid-area:right;min-width:0;}
-.hsplit,.vsplit{display:none;background:transparent;}  /* 分隔條隱藏：版面比例固定 */
+.hsplit{grid-area:hsplit;cursor:row-resize;background:#cbd5e1;}
+.vsplit{grid-area:vsplit;cursor:col-resize;background:#cbd5e1;}
 /* 分隔條拖動時嘅視覺反饋 */
-.main-wrap.dragging{cursor:default;}
+.main-wrap.dragging{cursor:grabbing;}
+.main-wrap.dragging .hsplit,
+.main-wrap.dragging .vsplit{background:#2e86ab;}
 .card{background:#fff;border:1px solid #aaa;padding:12px;border-radius:6px;overflow:auto;min-height:0;}
-/* 手機 / 平板：三個版面垂直堆疊，各自獨立佔位 + 可滾動，確保下面兩個版面可見 */
-@media(max-width:900px){
-  .main-wrap{
-    grid-template-columns:1fr;
-    grid-template-areas:"top" "left" "right";
-    height:auto;                    /* 唔再鎖死 100vh，三格自然流到下層 */
-  }
-  .hsplit,.vsplit{display:none;}    /* 窄屏隱藏分隔條（唔支援拖動）*/
-  .card-top   {height:45vh; min-height:260px;}
-  .card-left  {height:45vh; min-height:260px;}
-  .card-right {height:45vh; min-height:260px;}
-}
+/* (舊嘅 max-width:900px 堆疊規則已改由下面 max-width:720px 統一處理，避免斷點衝突) */
 .card-top{max-height:none;}
 .card-left,.card-right{max-height:none;}
 .title-bar{background:#ffddbb;padding:8px;font-weight:bold;font-size:16px;margin:-12px -12px 12px -12px;border-radius:6px 6px 0 0;}
@@ -168,12 +197,7 @@ button{padding:8px 12px;border:none;border-radius:6px;font-size:14px;font-weight
 .record-item-content.expanded .preview-line .tag.more{display:none;}
 .record-item-content .item-btn-bar{margin-top:6px;}
 
-@media(max-width:1080px){
-    .row,.row-address,.row-multi,.query-row{grid-template-columns:1fr;}
-    label{text-align:left;}
-    input[type="text"],input[type="number"],select
-    /* w-* 已直接在各元素用 style="width:XXpx" 設定，此處留空避免覆蓋 */
-}
+/* (舊嘅 max-width:1080px 規則已合併到上面三斷點版本，避免重複/語法殘缺) */
 </style>
 </head>
 <body>
@@ -411,7 +435,8 @@ button{padding:8px 12px;border:none;border-radius:6px;font-size:14px;font-weight
 </div>
 
 <!-- 可拖動分隔條：上下（水平條）控制頂/底高度，左右（垂直條）控制左右闊度 -->
-<!-- 分隔條已移除：三版面比例固定 -->
+<div class="hsplit" id="hSplit" title="拖動以調整上下面板高度"></div>
+<div class="vsplit" id="vSplit" title="拖動以調整左右面板闊度"></div>
 
 </div>
 
@@ -1532,8 +1557,67 @@ updateEditStatus();          // 初始時未進入編輯，「修改儲存」按
 // =====================================================================
 // ===== 三個版面自由放大縮小：拖動分隔條（上/下高度、左/右闊度）=====
 // =====================================================================
-/* 三版面已改為固定比例，拖動分隔條功能已移除（initResizablePanels）*/
+(function initResizablePanels(){
+    const wrap   = document.getElementById('mainWrap');
+    const hSplit = document.getElementById('hSplit');   // 水平條：控制頂/底高度
+    const vSplit = document.getElementById('vSplit');   // 垂直條：控制左右闊度
+    if(!wrap || !hSplit || !vSplit) return;
 
+    // 讀取 / 寫入 CSS 變數（初始值由各 media query / :root 預設）
+    const getVar = (name, fallback)=> parseFloat(getComputedStyle(wrap).getPropertyValue(name)) || fallback;
+    const setVar = (name, val)=> wrap.style.setProperty(name, val);
+
+    // ---- 拖動「上下高度」分隔條 ----
+    hSplit.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        wrap.classList.add('dragging');
+        const startY = e.clientY;
+        const rect = wrap.getBoundingClientRect();
+        const startTop = getVar('--row-top', rect.height * 0.45);   // 頂部初始比例(px)
+        const onMove = (ev)=>{
+            const dy = ev.clientY - startY;
+            const newTop = Math.min(Math.max(startTop + dy, rect.height * 0.12), rect.height * 0.85);
+            setVar('--row-top', newTop + 'px');
+            setVar('--row-bottom', (rect.height - newTop - 6) + 'px');  // 6 = 分隔條粗細
+        };
+        const onUp = ()=>{
+            wrap.classList.remove('dragging');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    });
+
+    // ---- 拖動「左右闊度」分隔條 ----
+    vSplit.addEventListener('mousedown', (e)=>{
+        e.preventDefault();
+        wrap.classList.add('dragging');
+        const startX = e.clientX;
+        const rect = wrap.getBoundingClientRect();
+        const startLeft = getVar('--col-left', rect.width * 0.5);
+        const onMove = (ev)=>{
+            const dx = ev.clientX - startX;
+            const newLeft = Math.min(Math.max(startLeft + dx, rect.width * 0.15), rect.width * 0.85);
+            setVar('--col-left', newLeft + 'px');
+            setVar('--col-right', (rect.width - newLeft - 6) + 'px');
+        };
+        const onUp = ()=>{
+            wrap.classList.remove('dragging');
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    });
+
+    // 視窗 resize 時保證最小尺寸合理（CSS 已用 min-width:0，呢度唔使做太多）
+    window.addEventListener('resize', ()=>{
+        const rect = wrap.getBoundingClientRect();
+        const top = getVar('--row-top', 0);
+        if(top > rect.height - 80) setVar('--row-top', (rect.height * 0.5) + 'px');
+    });
+})();
 
 // =====================================================================
 // ===== 版面縮放功能已移除（用戶要求：版面縮放刪除）=====
